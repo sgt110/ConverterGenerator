@@ -19,17 +19,20 @@ Usage
 
 Example of the result:
 
-     public Dto convertAs(Entity from) {
-         Dto to = new Dto();
-         to.setName(from.getName());
-         to.setAge(from.getAge());
-         to.setAddress(from.getAddress());
-         to.setNeighbors(from.getNeighbors());
-         to.setStudent(from.getStudent());
+     public Dto transBO2Dto(BO source) {
+         if (source == null) {
+            return null;
+         }
+         Dto target = new Dto();
+         target.setName(source.getName());
+         target.setAge(source.getAge());
+         target.setAddress(source.getAddress());
+         target.setNeighbors(source.getNeighbors());
+         target.setStudent(source.getStudent());
 
          // Not mapped FROM fields:
          // id
          // preferredLanguage
-         return to;
+         return target;
      } 
 
