@@ -19,6 +19,8 @@ import com.intellij.psi.codeStyle.CodeStyleSettings;
 import com.intellij.psi.codeStyle.CommonCodeStyleSettings;
 import com.intellij.psi.codeStyle.JavaCodeStyleManager;
 import com.intellij.psi.util.PsiTreeUtil;
+
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -75,7 +77,7 @@ public class GenerateConverterAction extends AnAction {
         builder.append(writeNotMappedFields(mappingResult.getNotMappedToFields(), indentation, "TO"));
         builder.append(writeNotMappedFields(mappingResult.getNotMappedFromFields(), indentation, "FROM"));
 
-        builder.append("return to;\n}");
+        builder.append("return target;\n}");
 
         PsiElementFactory elementFactory = JavaPsiFacade.getElementFactory(psiClass.getProject());
         PsiMethod convertAs = elementFactory.createMethodFromText(builder.toString(), psiClass);
@@ -123,12 +125,13 @@ public class GenerateConverterAction extends AnAction {
 
     @NotNull
     private StringBuilder buildMethodSignature(PsiClass to, PsiClass from) {
-        StringBuilder builder = new StringBuilder("public ");
+        StringBuilder builder = new StringBuilder("public static ");
         builder.append(to.getQualifiedName());
-        builder.append(" convertAs(");
+        builder.append(" ").append(getMethodName(to, from)).append("(");
         builder.append(from.getQualifiedName());
-        builder.append(" from) {\n");
-        builder.append(to.getQualifiedName()).append(" to = new ").append(to.getQualifiedName()).append("();\n");
+        builder.append(" source) {\n");
+        builder.append("if (source == null) {\n").append("  return null;\n").append("}\n");
+        builder.append(to.getQualifiedName()).append(" target = new ").append(to.getQualifiedName()).append("();\n");
         return builder;
     }
 
@@ -136,7 +139,7 @@ public class GenerateConverterAction extends AnAction {
     private String writeMappedFields(FieldsMappingResult mappingResult) {
         StringBuilder builder = new StringBuilder();
         for (PsiMethod toSetter : mappingResult.getMappedFields().keySet()) {
-            builder.append("to.").append(toSetter.getName()).append("(from.")
+            builder.append("target.").append(toSetter.getName()).append("(source.")
                     .append(mappingResult.getMappedFields().get(toSetter).getName()).append("());\n");
         }
         return builder.toString();
@@ -198,4 +201,13 @@ public class GenerateConverterAction extends AnAction {
         return fromGetterReturnType != null && toFieldType.isAssignableFrom(fromGetterReturnType);
     }
 
+    private String getMethodName(PsiClass to, PsiClass from) {
+        String methodName = "convertAs";
+        String toName = ObjectEndEnum.getEndCode(to.getQualifiedName());
+        String formName = ObjectEndEnum.getEndCode(from.getQualifiedName());
+        if (StringUtils.isNotBlank(toName) && StringUtils.isNotBlank(formName)) {
+            methodName = "trans" + formName + "2" + toName;
+        }
+        return methodName;
+    }
 }
