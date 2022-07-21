@@ -27,7 +27,7 @@ import static java.util.stream.Collectors.toList;
 public class GenerateConverterDialog extends DialogWrapper {
 
     private static final int WIDTH = 400;
-    private static final int HEIGHT = 123;
+    private static final int HEIGHT = 121;
 
     private JPanel dialog;
     private PsiClass psiClass;
